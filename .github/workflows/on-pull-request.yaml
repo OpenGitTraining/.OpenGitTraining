@@ -12,7 +12,7 @@ permissions:
 env:
   SUBMODULE_REPO: OpenGitTraining/.OpenGitTraining
   SUBMODULE_PATH: .OpenGitTraining
-  MANIFEST_FILE: .shadow-consumers.yaml
+  MANIFEST_FILE: .github/workflows/.shadow-consumers.yaml
   EVENT_TYPE: submodule-update
 
 jobs:
