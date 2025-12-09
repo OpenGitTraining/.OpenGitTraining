@@ -44,7 +44,7 @@ jobs:
           echo "JSON matrix:"
           echo "$JSON"
 
-          echo "consumers=$JSON" >> "$GITHUB_OUTPUT"
+          echo "repos_json=$JSON" >> "$GITHUB_OUTPUT"
 
   notify-subscribers:
     needs: read-subscribers
