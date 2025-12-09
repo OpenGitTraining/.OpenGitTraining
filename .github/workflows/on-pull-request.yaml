@@ -98,5 +98,5 @@ jobs:
           curl -f -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ steps.app_token.outputs.token }}" \
-            "https://api.github.com/repos/$CONSUMER/dispatches" \
+            "https://api.github.com/repos/OpenGitTraining/$CONSUMER/dispatches" \
             -d "$BODY"
