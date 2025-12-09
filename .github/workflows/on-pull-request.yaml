@@ -1,0 +1,95 @@
+name: On Pull Request
+run-name: On Pull Request
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # allow manual runs
+
+permissions:
+  contents: read
+
+env:
+  SUBMODULE_REPO: OpenGitTraining/.OpenGitTraining
+  SUBMODULE_PATH: .OpenGitTraining
+  MANIFEST_FILE: .shadow-consumers.yaml
+  EVENT_TYPE: submodule-update
+
+jobs:
+  read-subscribers:
+    runs-on: [ubuntu-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read Consumers
+        id: consumers
+        run: |
+          if [ ! -f "$MANIFEST_FILE" ]; then
+            echo "No $MANIFEST_FILE found; nothing to do."
+            exit 0
+          fi
+
+          REPOS=$(yq -r '.repos[]' "$MANIFEST_FILE")
+          echo "repos<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$REPOS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+          JSON=$(printf '%s\n' "$REPOS" | jq -R . | jq -s .)
+          echo "consumers=$JSON" >> "$GITHUB_OUTPUT"
+
+  notify-subscribers:
+    needs: read-subscribers
+    runs-on: [ubuntu-latest]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: ${{ fromJson(needs.bump-submodules.outputs.consumers) }}
+
+    steps:
+      - name: Generate installation token (GitHub App)
+        id: app_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.GH_APP__CI_ORCHESTRATOR__ID }}
+          private-key: ${{ secrets.GH_APP__CI_ORCHESTRATOR__PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            ${{ matrix.repo }}
+            .OpenGitTraining
+
+      - name: Notify
+        run: |
+          CONSUMER="${{ matrix.repo }}"
+          BRANCH="main"
+          REF="${{ github.sha }}"
+
+          echo "Sending $EVENT_TYPE from $SUBMODULE_REPO@$REF ($BRANCH) to $CONSUMER"
+
+          BODY=$(jq -n \
+            --arg ev  "$EVENT_TYPE" \
+            --arg sr  "$SUBMODULE_REPO" \
+            --arg sp  "$SUBMODULE_PATH" \
+            --arg rf  "$REF" \
+            --arg br  "$BRANCH" \
+            '{
+              event_type: $ev,
+              client_payload: {
+                submodule_repo: $sr,
+                submodule_path: $sp,
+                ref: $rf,
+                branch: $br,
+                reason: "shadow-update"
+              }
+            }')
+
+          echo "Dispatch body:"
+          echo "$BODY"
+
+          curl -f -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ steps.app_token.outputs.token }}" \
+            "https://api.github.com/repos/$CONSUMER/dispatches" \
+            -d "$BODY"
