@@ -32,16 +32,15 @@ jobs:
           fi
 
           REPOS=$(yq -r '.repos[]' "$MANIFEST_FILE")
-          echo "repos<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$REPOS" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
           
-          echo "DEBUG:"
-          echo "repos<<EOF"
+          echo "Repos found:"
           echo "$REPOS"
-          echo "EOF"
 
           JSON=$(printf '%s\n' "$REPOS" | jq -R . | jq -s .)
+
+          echo "JSON matrix:"
+          echo "$JSON"
+
           echo "consumers=$JSON" >> "$GITHUB_OUTPUT"
 
   notify-subscribers:
