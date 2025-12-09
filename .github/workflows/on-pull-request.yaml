@@ -39,7 +39,7 @@ jobs:
           echo "Repos found:"
           echo "$REPOS"
 
-          JSON=$(printf '%s\n' "$REPOS" | jq -R . | jq -s .)
+          JSON=$(printf '%s\n' "$REPOS" | jq -R . | jq -s -c .)
 
           echo "JSON matrix:"
           echo "$JSON"
