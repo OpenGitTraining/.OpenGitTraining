@@ -31,15 +31,15 @@ jobs:
             exit 0
           fi
 
-          echo "DEBUG:"
-          echo "repos<<EOF"
-          echo "$REPOS"
-          echo "EOF"
-
           REPOS=$(yq -r '.repos[]' "$MANIFEST_FILE")
           echo "repos<<EOF" >> "$GITHUB_OUTPUT"
           echo "$REPOS" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
+          
+          echo "DEBUG:"
+          echo "repos<<EOF"
+          echo "$REPOS"
+          echo "EOF"
 
           JSON=$(printf '%s\n' "$REPOS" | jq -R . | jq -s .)
           echo "consumers=$JSON" >> "$GITHUB_OUTPUT"
