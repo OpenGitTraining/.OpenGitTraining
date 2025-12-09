@@ -12,7 +12,7 @@ permissions:
 env:
   SUBMODULE_REPO: OpenGitTraining/.OpenGitTraining
   SUBMODULE_PATH: .OpenGitTraining
-  MANIFEST_FILE: .github/workflows/.shadow-consumers.yaml
+  MANIFEST_FILE: .github/.shadow-consumers.yaml
   EVENT_TYPE: submodule-update
 
 jobs:
@@ -30,6 +30,11 @@ jobs:
             echo "No $MANIFEST_FILE found; nothing to do."
             exit 0
           fi
+
+          echo "DEBUG:"
+          echo "repos<<EOF"
+          echo "$REPOS"
+          echo "EOF"
 
           REPOS=$(yq -r '.repos[]' "$MANIFEST_FILE")
           echo "repos<<EOF" >> "$GITHUB_OUTPUT"
