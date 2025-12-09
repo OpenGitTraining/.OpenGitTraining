@@ -46,7 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repo: ${{ fromJson(needs.bump-submodules.outputs.consumers) }}
+        repo: ${{ fromJson(needs.read-subscribers.outputs.consumers) }}
 
     steps:
       - name: Generate installation token (GitHub App)
